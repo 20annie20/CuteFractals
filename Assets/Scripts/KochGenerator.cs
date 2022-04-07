@@ -40,6 +40,12 @@ public class KochGenerator : MonoBehaviour
     protected AnimationCurve _generator;
     protected Keyframe[] _keys;
 
+    [SerializeField]
+    protected bool _useBezierCurves;
+    [SerializeField]
+    [Range(8,24)]
+    protected int _bezierVertexCount;
+
     protected int _generationCount;
 
     protected int _initiatorPointAmount;
@@ -52,7 +58,27 @@ public class KochGenerator : MonoBehaviour
 
     protected Vector3[] _position;
     protected Vector3[] _targetPosition;
+    protected Vector3[] _bezierPosition;
     private List<LineSegment> _lineSegment;
+
+    protected Vector3[] BezierCurve(Vector3[] points, int vertexCount)
+    {
+        var pointList = new List<Vector3>();
+        for(int i = 0; i < points.Length; i += 2)
+        {
+            if(i+2 <= points.Length - 1)
+            {
+                for (float ratio = 0f; ratio <= 1; ratio += 1.0f/ vertexCount)
+                {
+                    var tangentLineVertex1 = Vector3.Lerp(points[i], points[i + 1], ratio);
+                    var tangentLineVertex2 = Vector3.Lerp(points[i+1], points[i + 2], ratio);
+                    var bezierpoint = Vector3.Lerp(tangentLineVertex1, tangentLineVertex2, ratio);
+                    pointList.Add(bezierpoint);
+                }
+            }
+        }
+        return pointList.ToArray();
+    }
 
     private void Awake()
     {
@@ -124,6 +150,7 @@ public class KochGenerator : MonoBehaviour
         _targetPosition = new Vector3[targetPos.Count];
         _position = newPos.ToArray();
         _targetPosition = targetPos.ToArray();
+        _bezierPosition = BezierCurve(_targetPosition, _bezierVertexCount);
 
         _generationCount++;
     }

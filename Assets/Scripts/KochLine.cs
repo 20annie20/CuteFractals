@@ -6,7 +6,7 @@ using UnityEngine;
 public class KochLine : KochGenerator
 {
     LineRenderer _lineRenderer;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float _lerpAmount;
     Vector3[] _lerpPosition;
     public float _generateMultiplier;
@@ -23,14 +23,23 @@ public class KochLine : KochGenerator
 
     private void Update()
     {
-        Debug.Log(_generationCount);
-        if(_generationCount != 0)
+        if (_generationCount != 0)
         {
             for (int i = 0; i < _position.Length; i++)
             {
                 _lerpPosition[i] = Vector3.Lerp(_position[i], _targetPosition[i], _lerpAmount);
             }
-            _lineRenderer.SetPositions(_lerpPosition);
+            if (_useBezierCurves)
+            {
+                _bezierPosition = BezierCurve(_lerpPosition, _bezierVertexCount);
+                _lineRenderer.positionCount = _bezierPosition.Length;
+                _lineRenderer.SetPositions(_bezierPosition);
+            }
+            else
+            {
+                _lineRenderer.positionCount = _lerpPosition.Length;
+                _lineRenderer.SetPositions(_lerpPosition);
+            }
         }
 
         if (Input.GetKeyUp(KeyCode.O))
